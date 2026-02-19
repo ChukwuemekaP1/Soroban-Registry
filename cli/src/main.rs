@@ -1,4 +1,5 @@
 mod commands;
+mod profiler;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
@@ -86,6 +87,32 @@ enum Commands {
         #[arg(long)]
         network: Option<String>,
     },
+
+    /// Profile contract execution performance
+    Profile {
+        /// Path to contract file
+        contract_path: String,
+
+        /// Method to profile
+        #[arg(long)]
+        method: Option<String>,
+
+        /// Output JSON file
+        #[arg(long)]
+        output: Option<String>,
+
+        /// Generate flame graph
+        #[arg(long)]
+        flamegraph: Option<String>,
+
+        /// Compare with baseline profile
+        #[arg(long)]
+        compare: Option<String>,
+
+        /// Show recommendations
+        #[arg(long, default_value = "true")]
+        recommendations: bool,
+    },
 }
 
 #[tokio::main]
@@ -126,6 +153,24 @@ async fn main() -> Result<()> {
         }
         Commands::List { limit, network } => {
             commands::list(&cli.api_url, limit, network.as_deref()).await?;
+        }
+        Commands::Profile {
+            contract_path,
+            method,
+            output,
+            flamegraph,
+            compare,
+            recommendations,
+        } => {
+            commands::profile(
+                &contract_path,
+                method.as_deref(),
+                output.as_deref(),
+                flamegraph.as_deref(),
+                compare.as_deref(),
+                recommendations,
+            )
+            .await?;
         }
     }
 
