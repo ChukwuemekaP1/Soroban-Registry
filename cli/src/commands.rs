@@ -5,6 +5,7 @@ use serde_json::json;
 use shared::{extract_abi, generate_markdown};
 use std::fs;
 use std::path::Path;
+use tokio::process;
 
 use crate::patch::{PatchManager, Severity};
 use crate::profiler;
