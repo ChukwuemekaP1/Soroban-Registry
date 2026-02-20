@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
@@ -222,6 +223,94 @@ pub struct DeploymentSwitch {
     pub switched_at: DateTime<Utc>,
     pub switched_by: Option<String>,
     pub rollback: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type)]
+#[sqlx(type_name = "canary_status", rename_all = "snake_case")]
+pub enum CanaryStatus {
+    Pending,
+    Active,
+    Paused,
+    Completed,
+    RolledBack,
+    Failed,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type)]
+#[sqlx(type_name = "rollout_stage", rename_all = "snake_case")]
+pub enum RolloutStage {
+    Stage1,
+    Stage2,
+    Stage3,
+    Stage4,
+    Complete,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct CanaryRelease {
+    pub id: Uuid,
+    pub contract_id: Uuid,
+    pub from_deployment_id: Option<Uuid>,
+    pub to_deployment_id: Uuid,
+    pub status: CanaryStatus,
+    pub current_stage: RolloutStage,
+    pub current_percentage: i32,
+    pub target_percentage: i32,
+    pub error_rate_threshold: Decimal,
+    pub current_error_rate: Option<Decimal>,
+    pub total_requests: i32,
+    pub error_count: i32,
+    pub started_at: DateTime<Utc>,
+    pub completed_at: Option<DateTime<Utc>>,
+    pub created_by: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct CanaryMetric {
+    pub id: Uuid,
+    pub canary_id: Uuid,
+    pub timestamp: DateTime<Utc>,
+    pub requests: i32,
+    pub errors: i32,
+    pub error_rate: rust_decimal::Decimal,
+    pub avg_response_time_ms: Option<Decimal>,
+    pub p95_response_time_ms: Option<Decimal>,
+    pub p99_response_time_ms: Option<Decimal>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct CanaryUserAssignment {
+    pub id: Uuid,
+    pub canary_id: Uuid,
+    pub user_address: String,
+    pub assigned_at: DateTime<Utc>,
+    pub notified: bool,
+    pub notified_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateCanaryRequest {
+    pub contract_id: String,
+    pub to_deployment_id: String,
+    pub error_rate_threshold: Option<f64>,
+    pub created_by: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdvanceCanaryRequest {
+    pub canary_id: String,
+    pub target_percentage: Option<i32>,
+    pub advanced_by: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecordCanaryMetricRequest {
+    pub canary_id: String,
+    pub requests: i32,
+    pub errors: i32,
+    pub avg_response_time_ms: Option<f64>,
+    pub p95_response_time_ms: Option<f64>,
+    pub p99_response_time_ms: Option<f64>,
 }
 
 // ────────────────────────────────────────────────────────────────────────────

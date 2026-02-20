@@ -10,10 +10,13 @@ use axum::{
     Json,
 };
 use shared::{
-    Contract, ContractDeployment, ContractSearchParams, ContractVersion, DeployGreenRequest,
-    DeploymentEnvironment, DeploymentStatus, DeploymentSwitch, HealthCheckRequest,
-    PaginatedResponse, PublishRequest, Publisher, SwitchDeploymentRequest, VerifyRequest,
+    AdvanceCanaryRequest, CanaryMetric, CanaryRelease, CanaryStatus, CanaryUserAssignment,
+    Contract, ContractDeployment, ContractSearchParams, ContractVersion, CreateCanaryRequest,
+    DeployGreenRequest, DeploymentEnvironment, DeploymentStatus, DeploymentSwitch,
+    HealthCheckRequest, PaginatedResponse, PublishRequest, Publisher, RecordCanaryMetricRequest,
+    RolloutStage, SwitchDeploymentRequest, VerifyRequest,
 };
+use rust_decimal::Decimal;
 use uuid::Uuid;
 
 use crate::{
@@ -94,9 +97,9 @@ pub async fn get_stats(State(state): State<AppState>) -> ApiResult<Json<serde_js
 
     let verified_contracts: i64 =
         sqlx::query_scalar("SELECT COUNT(*) FROM contracts WHERE is_verified = true")
-            .fetch_one(&state.db)
-            .await
-            .map_err(|err| db_internal_error("count verified contracts", err))?;
+        .fetch_one(&state.db)
+        .await
+        .map_err(|err| db_internal_error("count verified contracts", err))?;
 
     let total_publishers: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM publishers")
         .fetch_one(&state.db)
@@ -433,8 +436,8 @@ pub async fn get_publisher_contracts(
     let contracts: Vec<Contract> =
         sqlx::query_as("SELECT * FROM contracts WHERE publisher_id = $1 ORDER BY created_at DESC")
             .bind(id)
-            .fetch_all(&state.db)
-            .await
+    .fetch_all(&state.db)
+    .await
             .map_err(|err| db_internal_error("list publisher contracts", err))?;
 
     Ok(Json(contracts))

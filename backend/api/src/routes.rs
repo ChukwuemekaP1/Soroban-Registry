@@ -54,3 +54,13 @@ pub fn migration_routes() -> Router<AppState> {
         .route("/api/migrations", post(handlers::migrations::create_migration).get(handlers::migrations::get_migrations))
         .route("/api/migrations/:id", put(handlers::migrations::update_migration).get(handlers::migrations::get_migration))
 }
+
+pub fn canary_routes() -> Router<AppState> {
+    Router::new()
+        .route("/api/canaries", post(handlers::create_canary))
+        .route("/api/canaries/:id", get(handlers::get_canary_status))
+        .route("/api/canaries/:id/advance", post(handlers::advance_canary))
+        .route("/api/canaries/:id/rollback", post(handlers::rollback_canary))
+        .route("/api/canaries/:id/metrics", post(handlers::record_canary_metric))
+        .route("/api/canaries/:id/users", post(handlers::assign_canary_users))
+}
