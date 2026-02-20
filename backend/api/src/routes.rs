@@ -24,6 +24,7 @@ pub fn contract_routes() -> Router<AppState> {
             "/api/contracts/:id/analytics",
             get(handlers::get_contract_analytics),
         )
+		  .route("/api/contracts/:id/trust-score", get(handlers::get_trust_score))
         .route(
             "/api/contracts/:id/dependencies",
             get(handlers::get_contract_dependencies),

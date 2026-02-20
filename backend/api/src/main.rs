@@ -20,6 +20,7 @@ mod popularity;
 mod rate_limit;
 mod routes;
 mod state;
+mod trust;
 mod health_monitor;
 mod migration_cli;
 
