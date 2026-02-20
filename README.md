@@ -282,6 +282,106 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Issues**: [GitHub Issues](https://github.com/yourusername/soroban-registry/issues)
 - **Discord**: [Stellar Discord](https://discord.gg/stellar)
 
+## Disaster Recovery Plan
+
+The Soroban Registry implements a comprehensive disaster recovery plan to ensure high availability and data integrity for all registered contracts.
+
+### Recovery Objectives
+- **RTO (Recovery Time Objective)**: < 1 hour
+- **RPO (Recovery Point Objective)**: < 1 minute
+
+### Contract-Specific Recovery Procedures
+
+#### Token Contracts
+1. **Detection**: Monitor contract health via `/api/contracts/{id}/health`
+2. **Isolation**: Suspend affected contract interactions
+3. **Recovery**: 
+   - Redeploy contract using CLI: `soroban-registry migrate --contract-id <id> --wasm <new_wasm>`
+   - Restore state from ledger (automatic)
+4. **Verification**: Run health checks and integration tests
+5. **Notification**: Alert users via API logs
+
+#### Bridge Contracts
+1. **Detection**: Monitor cross-chain transaction failures
+2. **Isolation**: Pause bridge operations
+3. **Recovery**:
+   - Update bridge configuration
+   - Redeploy with fixed parameters
+   - Sync state with external chains
+4. **Verification**: Test cross-chain transfers
+5. **Notification**: Notify bridge users
+
+#### DEX Contracts
+1. **Detection**: Monitor liquidity pool imbalances
+2. **Isolation**: Halt trading operations
+3. **Recovery**:
+   - Restore order book from backup
+   - Recalculate liquidity ratios
+   - Redeploy contract if corrupted
+4. **Verification**: Execute test trades
+5. **Notification**: Alert liquidity providers
+
+#### Lending Contracts
+1. **Detection**: Monitor collateralization ratios
+2. **Isolation**: Freeze lending operations
+3. **Recovery**:
+   - Recalculate positions
+   - Restore interest accruals
+   - Migrate to patched version
+4. **Verification**: Audit all positions
+5. **Notification**: Notify borrowers/lenders
+
+#### Oracle Contracts
+1. **Detection**: Monitor data feed staleness
+2. **Isolation**: Use fallback oracles
+3. **Recovery**:
+   - Update data sources
+   - Refresh price feeds
+   - Redeploy with new configuration
+4. **Verification**: Validate data accuracy
+5. **Notification**: Alert dependent contracts
+
+### Automated Recovery Scripts
+
+Use the CLI for automated recovery:
+
+```bash
+# Restore database from backup
+soroban-registry recovery restore-db backup.sql --database-url $DATABASE_URL
+
+# Run recovery drill
+soroban-registry recovery drill token --simulate
+
+# Report incident
+soroban-registry recovery report-incident --incident-type "contract_failure" --description "Token contract crashed" --lessons "Increase monitoring"
+```
+
+### Quarterly Disaster Recovery Drills
+
+1. Schedule drill during low-traffic periods
+2. Simulate failure scenarios
+3. Execute recovery procedures
+4. Document results and improvements
+5. Update runbooks based on lessons learned
+
+### User Notifications
+
+During incidents:
+- API logs incident details
+- External monitoring systems alert stakeholders
+- Status page updated (if implemented)
+
+Post-incident:
+- Detailed report published
+- Lessons learned documented in incident database
+
+### Security Considerations
+
+- Encrypted backup storage
+- Access-controlled recovery procedures
+- Audit logging of all recovery actions
+- Sandbox testing before production deployment
+
 ---
 
 **Built with ❤️ for the Stellar ecosystem**

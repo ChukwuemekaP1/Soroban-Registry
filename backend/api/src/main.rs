@@ -13,8 +13,12 @@ mod contract_history_routes;
 mod detector;
 mod error;
 mod handlers;
+mod health_monitor;
+mod incident_handlers;
+mod incident_routes;
 mod metrics;
 mod metrics_handler;
+mod migration_cli;
 mod models;
 mod multisig_handlers;
 mod multisig_routes;
@@ -28,8 +32,6 @@ mod state;
 mod template_handlers;
 mod template_routes;
 mod trust;
-mod health_monitor;
-mod migration_cli;
 
 use anyhow::Result;
 use axum::http::{header, HeaderValue, Method};
@@ -106,6 +108,7 @@ async fn main() -> Result<()> {
         .merge(template_routes::template_routes())
         .merge(routes::observability_routes())
         .merge(residency_routes::residency_routes())
+        .merge(incident_routes::incident_routes())
         .fallback(handlers::route_not_found)
         .layer(middleware::from_fn(request_logger))
         .layer(middleware::from_fn_with_state(

@@ -223,6 +223,12 @@ pub enum Commands {
         #[command(subcommand)]
         action: SlaCommands,
     },
+
+    /// Disaster recovery operations
+    Recovery {
+        #[command(subcommand)]
+        action: RecoveryCommands,
+    },
 }
 
 /// Sub-commands for the `sla` group
@@ -250,6 +256,42 @@ pub enum SlaCommands {
         contract_id: String,
     },
 
+}
+
+/// Sub-commands for the `recovery` group
+#[derive(Debug, Subcommand)]
+pub enum RecoveryCommands {
+    /// Restore database from backup
+    RestoreDb {
+        /// Path to the backup file (pg_dump output)
+        backup_file: String,
+        /// Database connection string
+        #[arg(long, env = "DATABASE_URL")]
+        database_url: String,
+    },
+    /// Run disaster recovery drill
+    Drill {
+        /// Contract type to drill (token, bridge, dex, lending, oracle)
+        contract_type: String,
+        /// Simulate failure
+        #[arg(long)]
+        simulate: bool,
+    },
+    /// Report incident and lessons learned
+    ReportIncident {
+        /// Contract ID (optional)
+        #[arg(long)]
+        contract_id: Option<String>,
+        /// Incident type
+        #[arg(long)]
+        incident_type: String,
+        /// Description
+        #[arg(long)]
+        description: String,
+        /// Lessons learned
+        #[arg(long)]
+        lessons: Option<String>,
+    },
 }
 
 /// Sub-commands for the `multisig` group
@@ -541,6 +583,26 @@ async fn main() -> Result<()> {
             SlaCommands::Status { id } => {
                 log::debug!("Command: sla status | id={}", id);
                 commands::sla_status(&id)?;
+            }
+            SlaCommands::TrustScore { contract_id } => {
+                log::debug!("Command: trust score | contract_id={}", contract_id);
+                commands::trust_score(&cli.api_url, &contract_id).await?;
+            }
+        },
+        Commands::Recovery { action } => match action {
+            RecoveryCommands::RestoreDb { backup_file, database_url } => {
+                log::debug!("Command: recovery restore-db | backup_file={}", backup_file);
+                commands::restore_db(&backup_file, &database_url).await?;
+            }
+            RecoveryCommands::Drill { contract_type, simulate } => {
+                log::debug!("Command: recovery drill | type={} simulate={}", contract_type, simulate);
+                commands::run_drill(&contract_type, simulate).await?;
+            }
+            RecoveryCommands::ReportIncident { contract_id, incident_type, description, lessons } => {
+                log::debug!("Command: recovery report-incident | type={}", incident_type);
+                commands::report_incident(&cli.api_url, contract_id.as_deref(), &incident_type, &description, lessons.as_deref()).await?;
+            }
+        },
         Commands::Deps { command } => match command {
             DepsCommands::List { contract_id } => {
                 commands::deps_list(&cli.api_url, &contract_id).await?;
