@@ -81,9 +81,9 @@ export function ContractsContent() {
             className="px-3 py-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-300"
           >
             <option value="">All Networks</option>
-            <option value="Mainnet">Mainnet</option>
-            <option value="Testnet">Testnet</option>
-            <option value="Futurenet">Futurenet</option>
+            <option value="mainnet">Mainnet</option>
+            <option value="testnet">Testnet</option>
+            <option value="futurenet">Futurenet</option>
           </select>
         </div>
       </div>

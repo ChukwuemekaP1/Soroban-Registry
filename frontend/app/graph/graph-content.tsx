@@ -10,7 +10,7 @@ import { AlertCircle, Sparkles } from 'lucide-react';
 
 // Generate synthetic demo data for testing at scale
 function generateDemoData(nodeCount: number): { nodes: GraphNode[]; edges: GraphEdge[] } {
-    const networks: ('Mainnet' | 'Testnet' | 'Futurenet')[] = ['Mainnet', 'Testnet', 'Futurenet'];
+    const networks: ('mainnet' | 'testnet' | 'futurenet')[] = ['mainnet', 'testnet', 'futurenet'];
     const categories = ['DeFi', 'NFT', 'DAO', 'Oracle', 'Bridge', 'DEX', 'Lending', 'Staking', 'Wallet', 'Token'];
     const tagOptions = ['soroban', 'stellar', 'defi', 'amm', 'lending', 'governance', 'token', 'nft', 'oracle', 'bridge'];
     const nameAdjectives = ['Swift', 'Quantum', 'Solar', 'Stellar', 'Bright', 'Nova', 'Cosmic', 'Nebula', 'Astral', 'Lunar'];
@@ -222,8 +222,8 @@ export function GraphContent() {
                     <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                             <span className="text-gray-400">Network</span>
-                            <span className={`font-medium ${selectedNode.network === 'Mainnet' ? 'text-green-400' :
-                                selectedNode.network === 'Testnet' ? 'text-blue-400' : 'text-purple-400'
+                            <span className={`font-medium ${selectedNode.network === 'mainnet' ? 'text-green-400' :
+                                selectedNode.network === 'testnet' ? 'text-blue-400' : 'text-purple-400'
                                 }`}>{selectedNode.network}</span>
                         </div>
                         <div className="flex justify-between">

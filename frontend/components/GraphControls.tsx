@@ -105,9 +105,9 @@ export default function GraphControls({
                             className="w-full px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
                         >
                             <option value="">All Networks</option>
-                            <option value="Mainnet">Mainnet</option>
-                            <option value="Testnet">Testnet</option>
-                            <option value="Futurenet">Futurenet</option>
+                            <option value="mainnet">Mainnet</option>
+                            <option value="testnet">Testnet</option>
+                            <option value="futurenet">Futurenet</option>
                         </select>
                     </div>
 

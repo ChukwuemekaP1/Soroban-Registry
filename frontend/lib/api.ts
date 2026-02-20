@@ -5,7 +5,7 @@ export interface Contract {
   name: string;
   description?: string;
   publisher_id: string;
-  network: 'Mainnet' | 'Testnet' | 'Futurenet';
+  network: 'mainnet' | 'testnet' | 'futurenet';
   is_verified: boolean;
   category?: string;
   tags: string[];
@@ -44,7 +44,7 @@ export interface PaginatedResponse<T> {
 
 export interface ContractSearchParams {
   query?: string;
-  network?: 'Mainnet' | 'Testnet' | 'Futurenet';
+  network?: 'mainnet' | 'testnet' | 'futurenet';
   verified_only?: boolean;
   category?: string;
   tags?: string[];
@@ -56,7 +56,7 @@ export interface PublishRequest {
   contract_id: string;
   name: string;
   description?: string;
-  network: 'Mainnet' | 'Testnet' | 'Futurenet';
+  network: 'mainnet' | 'testnet' | 'futurenet';
   category?: string;
   tags: string[];
   source_url?: string;
@@ -138,7 +138,7 @@ export interface GraphNode {
   id: string;
   contract_id: string;
   name: string;
-  network: 'Mainnet' | 'Testnet' | 'Futurenet';
+  network: 'mainnet' | 'testnet' | 'futurenet';
   is_verified: boolean;
   category?: string;
   tags: string[];

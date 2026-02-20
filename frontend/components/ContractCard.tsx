@@ -8,9 +8,9 @@ interface ContractCardProps {
 
 export default function ContractCard({ contract }: ContractCardProps) {
   const networkColors = {
-    Mainnet: 'bg-green-500/10 text-green-600 border-green-500/20',
-    Testnet: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-    Futurenet: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+    mainnet: 'bg-green-500/10 text-green-600 border-green-500/20',
+    testnet: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+    futurenet: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
   };
 
   return (

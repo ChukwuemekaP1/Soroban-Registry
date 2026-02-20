@@ -8,7 +8,7 @@ interface SimNode extends d3.SimulationNodeDatum {
     id: string;
     contract_id: string;
     name: string;
-    network: 'Mainnet' | 'Testnet' | 'Futurenet';
+    network: 'mainnet' | 'testnet' | 'futurenet';
     is_verified: boolean;
     category?: string;
     tags: string[];
@@ -41,15 +41,15 @@ export interface DependencyGraphHandle {
 }
 
 const NETWORK_COLORS: Record<string, string> = {
-    Mainnet: '#22c55e',
-    Testnet: '#3b82f6',
-    Futurenet: '#a855f7',
+    mainnet: '#22c55e',
+    testnet: '#3b82f6',
+    futurenet: '#a855f7',
 };
 
 const NETWORK_COLORS_DIM: Record<string, string> = {
-    Mainnet: '#166534',
-    Testnet: '#1e3a5f',
-    Futurenet: '#581c87',
+    mainnet: '#166534',
+    testnet: '#1e3a5f',
+    futurenet: '#581c87',
 };
 
 const DependencyGraph = forwardRef<DependencyGraphHandle, DependencyGraphProps>(
