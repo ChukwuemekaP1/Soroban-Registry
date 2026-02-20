@@ -44,7 +44,10 @@ pub struct ContractVersion {
     pub wasm_hash: String,
     pub source_url: Option<String>,
     pub commit_hash: Option<String>,
-    pub release_notes: Option<String>,
+    pub release_notes: Option<String>,This branch has conflicts that must be resolved
+Discard 2 commits to make this branch match the upstream repository. 2 commits will be removed from this branch.
+
+You can resolve merge conflicts using the command line and a text editor.
     pub created_at: DateTime<Utc>,
 }
 
