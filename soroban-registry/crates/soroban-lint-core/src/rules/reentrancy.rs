@@ -45,15 +45,20 @@ fn normalize(s: &str) -> String {
     s.chars().filter(|c| !c.is_whitespace()).collect()
 }
 
-
 impl<'ast> Visit<'ast> for ReentrancyVisitor {
     fn visit_item_fn(&mut self, node: &'ast syn::ItemFn) {
         let code_str = normalize(&quote::quote!(#node).to_string());
 
         // Check for cross-contract calls before state writes
         // Note: quote::quote! may add spaces around parens, so we search for multiple patterns
-        let call_idx = first_index(&code_str, &["invoke_contract", "invoke", ". call (", ".call("]);
-        let write_idx = first_index(&code_str, &[". set (", ".set(", "storage ()", "storage()", "write"]);
+        let call_idx = first_index(
+            &code_str,
+            &["invoke_contract", "invoke", ". call (", ".call("],
+        );
+        let write_idx = first_index(
+            &code_str,
+            &[". set (", ".set(", "storage ()", "storage()", "write"],
+        );
 
         if let (Some(call_pos), Some(write_pos)) = (call_idx, write_idx) {
             if call_pos < write_pos {

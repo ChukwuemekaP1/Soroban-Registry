@@ -1,11 +1,11 @@
-use anyhow::{Result, anyhow};
-use chrono::{DateTime, Utc, Duration};
+use anyhow::{anyhow, Result};
+use chrono::{DateTime, Duration, Utc};
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::{mpsc, Semaphore};
+use tracing::{error, info, warn};
 use uuid::Uuid;
-use tracing::{info, error, warn};
 
 /// Types of jobs supported by the engine
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -71,8 +71,11 @@ impl JobEngine {
         };
 
         self.jobs.insert(id, job);
-        self.tx.send(id).await.map_err(|e| anyhow!("Failed to send job to queue: {}", e))?;
-        
+        self.tx
+            .send(id)
+            .await
+            .map_err(|e| anyhow!("Failed to send job to queue: {}", e))?;
+
         info!(job_id = %id, "Job enqueued successfully");
         Ok(id)
     }
@@ -139,7 +142,7 @@ impl JobEngine {
                     let backoff_secs = 2u64.pow(job.retries);
                     job.next_try = Utc::now() + Duration::seconds(backoff_secs as i64);
                     warn!(job_id = %job_id, retries = job.retries, next_try = %job.next_try, "Job failed, retrying");
-                    
+
                     // Re-enqueue for retry
                     let tx = self.tx.clone();
                     tokio::spawn(async move {
@@ -171,7 +174,12 @@ impl JobEngine {
         }
 
         // Simulate random failure for testing retries if payload contains "fail"
-        if job.payload.get("simulate_fail").and_then(|v| v.as_bool()).unwrap_or(false) {
+        if job
+            .payload
+            .get("simulate_fail")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false)
+        {
             return Err(anyhow!("Simulated job failure"));
         }
 
@@ -189,13 +197,13 @@ mod tests {
         let (engine, rx) = JobEngine::new();
         let engine = Arc::new(engine);
         let engine_clone = engine.clone();
-        
+
         tokio::spawn(async move {
             engine_clone.run_worker(rx).await;
         });
 
         let job_id = engine.enqueue(JobType::ContractVerify, json!({})).await?;
-        
+
         // Wait for completion
         let mut success = false;
         for _ in 0..10 {
@@ -207,7 +215,7 @@ mod tests {
                 }
             }
         }
-        
+
         assert!(success, "Job should complete successfully");
         Ok(())
     }
@@ -217,21 +225,27 @@ mod tests {
         let (engine, rx) = JobEngine::new();
         let engine = Arc::new(engine);
         let engine_clone = engine.clone();
-        
+
         tokio::spawn(async move {
             engine_clone.run_worker(rx).await;
         });
 
-        let job_id = engine.enqueue(JobType::GenerateReport, json!({"simulate_fail": true})).await?;
-        
+        let job_id = engine
+            .enqueue(JobType::GenerateReport, json!({"simulate_fail": true}))
+            .await?;
+
         // Wait and check retries
         tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-        
+
         if let Some(job) = engine.get_job(&job_id) {
             assert!(job.retries > 0, "Job should have retried");
-            assert!(job.status == JobStatus::Pending || job.status == JobStatus::Processing || job.status == JobStatus::Failed);
+            assert!(
+                job.status == JobStatus::Pending
+                    || job.status == JobStatus::Processing
+                    || job.status == JobStatus::Failed
+            );
         }
-        
+
         Ok(())
     }
 
@@ -240,7 +254,7 @@ mod tests {
         let (engine, rx) = JobEngine::new();
         let engine = Arc::new(engine);
         let engine_clone = engine.clone();
-        
+
         tokio::spawn(async move {
             engine_clone.run_worker(rx).await;
         });
@@ -254,7 +268,7 @@ mod tests {
         tokio::time::sleep(std::time::Duration::from_millis(50)).await;
         let available = engine.semaphore.available_permits();
         assert!(available <= 5, "At most 5 jobs should be running");
-        
+
         Ok(())
     }
 }

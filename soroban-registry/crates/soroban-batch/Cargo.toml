@@ -13,3 +13,4 @@ tokio = { workspace = true }
 dashmap = { workspace = true }
 colored.workspace = true
 tracing = "0.1.44"
+uuid = { version = "1", features = ["v4", "serde"] }

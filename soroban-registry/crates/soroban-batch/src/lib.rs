@@ -1,8 +1,8 @@
 use anyhow::Result;
+use colored::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::fs;
-use colored::*;
 
 pub mod engine;
 
@@ -41,7 +41,7 @@ pub struct BatchReportItem {
 // This is the function signature that main.rs expects
 pub fn execute_batch(file_path: &str, dry_run: bool, format: &str) -> Result<Vec<BatchReportItem>> {
     let content = fs::read_to_string(file_path)?;
-    
+
     // Parse manifest based on file extension
     let manifest: BatchManifest = if file_path.ends_with(".yaml") || file_path.ends_with(".yml") {
         serde_yaml::from_str(&content)?
@@ -57,15 +57,21 @@ pub fn execute_batch(file_path: &str, dry_run: bool, format: &str) -> Result<Vec
         anyhow::bail!("Batch size exceeds maximum limit of 1000 operations");
     }
 
-    println!("✅ Manifest validated. Found {} operations", manifest.batch.len());
+    println!(
+        "✅ Manifest validated. Found {} operations",
+        manifest.batch.len()
+    );
 
     if dry_run {
-        println!("{}", "🔍 DRY RUN - Validating operations without execution...".yellow());
-        
+        println!(
+            "{}",
+            "🔍 DRY RUN - Validating operations without execution...".yellow()
+        );
+
         for item in &manifest.batch {
             println!("  ✓ {} → {:?}", item.contract, item.operation);
         }
-        
+
         println!("{}", "✅ All operations are valid".green());
         return Ok(Vec::new());
     }
@@ -86,7 +92,7 @@ pub fn execute_batch(file_path: &str, dry_run: bool, format: &str) -> Result<Vec
         }
 
         print!("Executing {:?} on {} ... ", item.operation, item.contract);
-        
+
         match execute_single_operation(item) {
             Ok(_) => {
                 println!("{}", "✅ SUCCESS".green());
@@ -117,7 +123,7 @@ pub fn execute_batch(file_path: &str, dry_run: bool, format: &str) -> Result<Vec
         // registry backend revert endpoints when available. Currently operates
         // in simulation mode — see crates/soroban-batch/src/rollback.rs.
         println!("{}", "✅ Rollback completed".green());
-        
+
         // Mark successful operations as rolled back
         for item in report.iter_mut() {
             if item.status == "success" {
@@ -141,7 +147,10 @@ pub fn execute_batch(file_path: &str, dry_run: bool, format: &str) -> Result<Vec
                     "skipped" => item.status.cyan(),
                     _ => item.status.normal(),
                 };
-                println!("  {} | {} | {}", item.contract, item.operation, status_colored);
+                println!(
+                    "  {} | {} | {}",
+                    item.contract, item.operation, status_colored
+                );
             }
         }
     }
@@ -152,14 +161,14 @@ pub fn execute_batch(file_path: &str, dry_run: bool, format: &str) -> Result<Vec
 fn execute_single_operation(item: &BatchItem) -> Result<()> {
     // Stub: delegates to the registry CLI client for each operation type.
     // Currently runs in simulation mode with timing estimates.
-    
+
     match item.operation {
         OperationType::Publish => {
             // Simulate publish operation
             std::thread::sleep(std::time::Duration::from_millis(100));
         }
         OperationType::Verify => {
-            // Simulate verify operation  
+            // Simulate verify operation
             std::thread::sleep(std::time::Duration::from_millis(50));
         }
         OperationType::UpdateMetadata => {
@@ -175,11 +184,11 @@ fn execute_single_operation(item: &BatchItem) -> Result<()> {
             std::thread::sleep(std::time::Duration::from_millis(10));
         }
     }
-    
+
     // Simulate occasional failures for testing
     // if item.contract.contains("fail") {
     //     anyhow::bail!("Simulated operation failure");
     // }
-    
+
     Ok(())
 }

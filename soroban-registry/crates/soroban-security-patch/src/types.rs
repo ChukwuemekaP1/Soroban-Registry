@@ -7,12 +7,15 @@ use std::fmt;
 // ---------------------------------------------------------------------------
 
 /// Severity level of a security patch.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Default,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum Severity {
     /// Low-impact issues – informational or best-practice improvements.
     Low,
     /// Medium-impact vulnerabilities – potential for limited exploitation.
+    #[default]
     Medium,
     /// High-impact vulnerabilities – significant risk of exploitation.
     High,
@@ -31,21 +34,16 @@ impl fmt::Display for Severity {
     }
 }
 
-impl Default for Severity {
-    fn default() -> Self {
-        Self::Medium
-    }
-}
-
 // ---------------------------------------------------------------------------
 // Patch status
 // ---------------------------------------------------------------------------
 
 /// Lifecycle status of a security patch.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum PatchStatus {
     /// Patch has been drafted but not yet validated.
+    #[default]
     Draft,
     /// Patch is undergoing validation / testing.
     Validating,
@@ -72,12 +70,6 @@ impl fmt::Display for PatchStatus {
             Self::Rejected => write!(f, "REJECTED"),
             Self::RolledBack => write!(f, "ROLLED_BACK"),
         }
-    }
-}
-
-impl Default for PatchStatus {
-    fn default() -> Self {
-        Self::Draft
     }
 }
 
