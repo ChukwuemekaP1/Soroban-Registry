@@ -36,6 +36,14 @@ pub fn contract_routes() -> Router<AppState> {
             "/api/contracts/trending",
             get(handlers::get_trending_contracts),
         )
+        .route(
+            "/api/contracts/batch",
+            post(handlers::get_contracts_batch),
+        )
+        .route(
+            "/contracts/batch",
+            post(handlers::get_contracts_batch),
+        )
         .route("/api/contracts/graph", get(handlers::get_contract_graph))
         .route("/api/contracts/:id", get(handlers::get_contract))
         .route(
