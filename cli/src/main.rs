@@ -7,6 +7,7 @@ mod config;
 mod contracts;
 mod conversions;
 mod coverage;
+mod dashboard;
 mod events;
 mod export;
 mod formal_verification;
@@ -135,10 +136,17 @@ pub enum Commands {
         json: bool,
     },
 
-    /// List and filter contracts in the registry
-    Contracts {
-        #[command(subcommand)]
-        action: ContractsCommands,
+    /// Launch an interactive, real-time terminal dashboard
+    Dashboard {
+        /// Minimum interval between UI renders (milliseconds)
+        #[arg(long, default_value = "100")]
+        refresh_rate: u64,
+        /// Filter by contract category
+        #[arg(long)]
+        category: Option<String>,
+        /// WebSocket URL (or set SOROBAN_REGISTRY_WS_URL)
+        #[arg(long, env = "SOROBAN_REGISTRY_WS_URL")]
+        ws_url: Option<String>,
     },
 
     /// Detect breaking changes between contract versions
@@ -1049,52 +1057,25 @@ async fn main() -> Result<()> {
             log::debug!("Command: list | limit={}", limit);
             commands::list(&cli.api_url, limit, network, json).await?;
         }
-        Commands::Contracts { action } => match action {
-            ContractsCommands::List {
-                network: net,
+        Commands::Dashboard {
+            refresh_rate,
+            category,
+            ws_url,
+        } => {
+            log::debug!(
+                "Command: dashboard | refresh_rate={} network={:?} category={:?}",
+                refresh_rate,
+                cli.network,
+                category
+            );
+            dashboard::run_dashboard(dashboard::DashboardParams {
+                refresh_rate_ms: refresh_rate,
+                network: cli.network.clone(),
                 category,
-                limit,
-                offset,
-                sort_by,
-                sort_order,
-                format,
-                json,
-                csv,
-            } => {
-                log::debug!(
-                    "Command: contracts list | network={:?} category={:?} limit={} offset={}",
-                    net,
-                    category,
-                    limit,
-                    offset
-                );
-
-                // Determine output format
-                let output_format = if json {
-                    contracts::OutputFormat::Json
-                } else if csv {
-                    contracts::OutputFormat::Csv
-                } else {
-                    match format.as_str() {
-                        "json" => contracts::OutputFormat::Json,
-                        "csv" => contracts::OutputFormat::Csv,
-                        _ => contracts::OutputFormat::Table,
-                    }
-                };
-
-                contracts::list_contracts(
-                    &cli.api_url,
-                    net.as_deref(),
-                    category.as_deref(),
-                    limit,
-                    offset,
-                    Some(&sort_by),
-                    Some(&sort_order),
-                    output_format,
-                )
-                .await?;
-            }
-        },
+                ws_url,
+            })
+            .await?;
+        }
         Commands::BreakingChanges { old_id, new_id, json } => {
             log::debug!("Command: breaking-changes | old={} new={}", old_id, new_id);
             commands::breaking_changes(&cli.api_url, &old_id, &new_id, json).await?;
