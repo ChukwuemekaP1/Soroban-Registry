@@ -58,7 +58,9 @@ pub struct Contract {
     pub visibility: VisibilityType,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, utoipa::ToSchema, PartialEq, Default)]
+#[derive(
+    Debug, Clone, Serialize, Deserialize, sqlx::Type, utoipa::ToSchema, PartialEq, Default,
+)]
 #[sqlx(type_name = "visibility_type", rename_all = "lowercase")]
 #[serde(rename_all = "lowercase")]
 pub enum VisibilityType {
@@ -66,7 +68,6 @@ pub enum VisibilityType {
     Public,
     Private,
 }
-
 
 /// Response for GET /contracts/:id with optional network-specific slice (Issue #43)
 #[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
@@ -279,7 +280,9 @@ pub enum VerificationStatus {
 }
 
 /// Security audit status of the contract (Issue #401)
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, utoipa::ToSchema, PartialEq, Default)]
+#[derive(
+    Debug, Clone, Serialize, Deserialize, sqlx::Type, utoipa::ToSchema, PartialEq, Default,
+)]
 #[sqlx(type_name = "audit_status_type", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum AuditStatus {
     #[default]
@@ -288,7 +291,6 @@ pub enum AuditStatus {
     Passed,
     Failed,
 }
-
 
 /// Contract maturity level - indicates stability and production readiness
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, utoipa::ToSchema)]
