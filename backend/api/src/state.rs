@@ -25,6 +25,13 @@ pub enum RealtimeEvent {
         details: serde_json::Value,
         timestamp: String,
     },
+    CicdPipeline {
+        contract_id: String,
+        status: String,
+        steps_completed: u32,
+        total_steps: u32,
+        timestamp: String,
+    },
 }
 
 /// Application state shared across handlers

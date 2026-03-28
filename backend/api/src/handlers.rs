@@ -2616,6 +2616,15 @@ pub async fn publish_contract(
         Some(publisher.stellar_address.clone()),
     ));
 
+    if req.is_cicd {
+        crate::events::emit_cicd_pipeline(
+            &state,
+            contract.contract_id.clone(),
+            "published".to_string(),
+            4, // Step 4 of 5
+        );
+    }
+
     Ok(Json(contract))
 }
 

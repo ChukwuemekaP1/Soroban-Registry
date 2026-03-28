@@ -385,6 +385,9 @@ pub struct PublishRequest {
     // Dependencies (new field)
     #[serde(default)]
     pub dependencies: Vec<DependencyDeclaration>,
+    /// Whether this was published via CI/CD (Issue #529)
+    #[serde(default)]
+    pub is_cicd: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
