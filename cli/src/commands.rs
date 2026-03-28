@@ -413,11 +413,12 @@ pub async fn publish(
     category: Option<&str>,
     tags: Vec<String>,
     publisher: &str,
+    is_cicd: bool,
 ) -> Result<()> {
     let client = reqwest::Client::new();
     let url = format!("{}/api/contracts", api_url);
 
-    let payload = json!({
+    let mut payload = json!({
         "contract_id": contract_id,
         "name": name,
         "description": description,
@@ -426,6 +427,10 @@ pub async fn publish(
         "tags": tags,
         "publisher_address": publisher,
     });
+
+    if is_cicd {
+        payload["is_cicd"] = json!(true);
+    }
 
     println!("\n{}", "Publishing contract...".bold().cyan());
 

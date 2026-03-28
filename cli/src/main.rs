@@ -25,6 +25,7 @@ mod sla;
 mod test_framework;
 mod webhook;
 mod wizard;
+mod cicd;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
@@ -467,6 +468,12 @@ pub enum Commands {
         #[command(subcommand)]
         action: ReleaseNotesCommands,
     },
+
+    /// CI/CD pipeline integration and automation
+    Cicd {
+        #[command(subcommand)]
+        action: CicdCommands,
+    },
 }
 
 /// Sub-commands for the `release-notes` group
@@ -513,6 +520,7 @@ pub enum ReleaseNotesCommands {
         #[arg(long)]
         json: bool,
     },
+
 
     /// Edit draft release notes before publishing
     Edit {
@@ -565,6 +573,40 @@ pub enum ReleaseNotesCommands {
         /// Output as JSON
         #[arg(long)]
         json: bool,
+    },
+}
+
+/// Sub-commands for the `cicd` group
+#[derive(Debug, Subcommand)]
+pub enum CicdCommands {
+    /// Run a full CI/CD pipeline (validate, scan, build, publish, verify)
+    Run {
+        /// Path to contract directory
+        #[arg(long, default_value = ".")]
+        contract_path: String,
+
+        /// Network to target (testnet|mainnet)
+        #[arg(long, default_value = "testnet")]
+        network: String,
+
+        /// Skip security scans
+        #[arg(long)]
+        skip_scan: bool,
+
+        /// Auto-register contract if not found in registry
+        #[arg(long, default_value_t = true)]
+        auto_register: bool,
+
+        /// Output results as JSON
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Validate the current environment for CI/CD integration
+    Validate {
+        /// Path to contract directory
+        #[arg(long, default_value = ".")]
+        contract_path: String,
     },
 }
 
@@ -982,6 +1024,7 @@ async fn main() -> Result<()> {
                 category.as_deref(),
                 tags_vec,
                 &publisher,
+                false,
             )
             .await?;
         }
@@ -1637,6 +1680,23 @@ async fn main() -> Result<()> {
                     contract_id
                 );
                 release_notes::list(&cli.api_url, &contract_id, json).await?;
+            }
+        },
+
+        Commands::Cicd { action } => match action {
+            CicdCommands::Run {
+                contract_path,
+                network,
+                skip_scan,
+                auto_register,
+                json,
+            } => {
+                log::debug!("Command: cicd run | path={} network={}", contract_path, network);
+                cicd::run_pipeline(&cli.api_url, &contract_path, &network, skip_scan, auto_register, json).await?;
+            }
+            CicdCommands::Validate { contract_path } => {
+                log::debug!("Command: cicd validate | path={}", contract_path);
+                cicd::validate_env(&contract_path).await?;
             }
         },
     }
