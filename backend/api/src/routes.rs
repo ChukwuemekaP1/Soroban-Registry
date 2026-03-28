@@ -2,9 +2,10 @@
 use crate::openapi;
 use crate::{
     ab_test_handlers, auth, auth_handlers, batch_verify_handlers, breaking_changes,
-    canary_handlers, category_handlers, compatibility_testing_handlers, custom_metrics_handlers,
-    deprecation_handlers, handlers, metrics_handler, migration_handlers, performance_handlers,
-    resource_handlers, simulation_handlers, state::AppState, websocket
+    canary_handlers, category_handlers, compatibility_testing_handlers, contract_events,
+    custom_metrics_handlers, deprecation_handlers, handlers, metrics_handler,
+    migration_handlers, performance_handlers, resource_handlers, similarity_handlers,
+    simulation_handlers, state::AppState, websocket
 };
 
 use axum::{
