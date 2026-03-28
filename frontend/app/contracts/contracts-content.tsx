@@ -548,18 +548,11 @@ export function ContractsContent() {
               ) : (
                 <div className="space-y-6 text-left">
                   <QueryBuilder 
-                    initialQuery={advancedQuery || undefined}
-                    onChange={(q) => setAdvancedQuery(q)}
-                    onSearch={() => {
-                      if (advancedQuery) syncToUrl(advancedQuery);
-                      refetch();
-                    }}
-                    onSave={() => {
-                      const name = prompt('Enter a name for this favorite search:');
-                      if (name) saveFavoriteMutation.mutate(name);
-                    }}
+                    initialQuery={undefined}
+                    onChange={() => {}}
+                    onSearch={() => {}}
+                    onSave={() => {}}
                   />
-                  {advancedQuery && <QuerySummary query={advancedQuery} />}
                 </div>
               )}
             </div>
