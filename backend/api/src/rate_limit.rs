@@ -50,6 +50,9 @@ use crate::error::ApiError;
 const DEFAULT_ANON_LIMIT_PER_MINUTE: u32 = 100;
 const DEFAULT_AUTH_LIMIT_PER_MINUTE: u32 = 1_000;
 const DEFAULT_WINDOW_SECONDS: u64 = 60;
+const DEFAULT_CONTRACTS_PAGE_SIZE: u32 = 50;
+const MAX_CONTRACTS_PAGE_SIZE: u32 = 1000;
+const ENDPOINT_LIMIT_ENV_PREFIX: &str = "RATE_LIMIT_ENDPOINT_";
 
 /// How often the background task sweeps for expired buckets.
 const EVICTION_INTERVAL: Duration = Duration::from_secs(5 * 60); // every 5 minutes
@@ -341,6 +344,69 @@ fn parse_ip_addr(raw: &str) -> Option<IpAddr> {
     raw.parse::<IpAddr>()
         .ok()
         .or_else(|| raw.parse::<SocketAddr>().ok().map(|addr| addr.ip()))
+}
+
+fn is_write_method(method: &Method) -> bool {
+    matches!(
+        *method,
+        Method::POST | Method::PUT | Method::PATCH | Method::DELETE
+    )
+}
+
+fn contracts_page_size_rate_limit(method: &Method, path: &str, query: Option<&str>) -> Option<u32> {
+    if *method != Method::GET || path != "/api/contracts" {
+        return None;
+    }
+
+    Some(extract_page_size(query).unwrap_or(DEFAULT_CONTRACTS_PAGE_SIZE))
+}
+
+fn extract_page_size(query: Option<&str>) -> Option<u32> {
+    let query = query?;
+
+    for pair in query.split('&') {
+        let mut parts = pair.splitn(2, '=');
+        let key = parts.next()?;
+        let value = parts.next().unwrap_or_default();
+
+        if key == "limit" || key == "page_size" {
+            if let Ok(parsed) = value.parse::<u32>() {
+                return Some(parsed.clamp(1, MAX_CONTRACTS_PAGE_SIZE));
+            }
+        }
+    }
+
+    None
+}
+
+fn scale_limit_by_page_size(base_limit: u32, page_size: u32) -> u32 {
+    let weight = page_size.div_ceil(DEFAULT_CONTRACTS_PAGE_SIZE).max(1);
+    (base_limit / weight).max(1)
+}
+
+fn endpoint_key(method: &Method, path: &str) -> String {
+    let normalized_path = path
+        .chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() {
+                c.to_ascii_uppercase()
+            } else {
+                '_'
+            }
+        })
+        .collect::<String>();
+
+    let compact_path = normalized_path
+        .split('_')
+        .filter(|part| !part.is_empty())
+        .collect::<Vec<_>>()
+        .join("_");
+
+    if compact_path.is_empty() {
+        format!("{}_ROOT", method.as_str().to_ascii_uppercase())
+    } else {
+        format!("{}_{}", method.as_str().to_ascii_uppercase(), compact_path)
+    }
 }
 
 fn env_u32(key: &str, default: u32) -> u32 {
@@ -638,6 +704,54 @@ mod tests {
                 .unwrap_or(""),
             "0"
         );
+    }
+
+    #[tokio::test]
+    async fn contracts_rate_limit_scales_down_for_large_page_sizes() {
+        let app = test_app(100, 20, 10_000, Duration::from_secs(60));
+        let ip = "198.51.100.77";
+
+        for _ in 0..5 {
+            let response = call(
+                &app,
+                Request::builder()
+                    .uri("/api/contracts?limit=1000")
+                    .method("GET")
+                    .header("x-forwarded-for", ip)
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await;
+
+            assert_eq!(response.status(), StatusCode::NOT_FOUND);
+            assert_eq!(
+                response
+                    .headers()
+                    .get(HEADER_RATE_LIMIT_LIMIT)
+                    .and_then(|value| value.to_str().ok()),
+                Some("5")
+            );
+        }
+
+        let limited = call(
+            &app,
+            Request::builder()
+                .uri("/api/contracts?limit=1000")
+                .method("GET")
+                .header("x-forwarded-for", ip)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await;
+
+        assert_eq!(limited.status(), StatusCode::TOO_MANY_REQUESTS);
+    }
+
+    #[test]
+    fn page_size_scaling_uses_default_page_size_baseline() {
+        assert_eq!(scale_limit_by_page_size(100, 50), 100);
+        assert_eq!(scale_limit_by_page_size(100, 51), 50);
+        assert_eq!(scale_limit_by_page_size(100, 1000), 5);
     }
 
     /// Verify that the eviction logic correctly removes expired buckets.

@@ -13,6 +13,26 @@ The Soroban Registry API implements rate limiting to ensure fair usage, prevent 
 | **Anonymous (per IP)** | 100 requests/min | Requests without an `Authorization` header |
 | **Authenticated (per token)** | 1,000 requests/min | Requests with an `Authorization` header |
 
+### Page-Size Aware Limits For `GET /api/contracts`
+
+`GET /api/contracts` uses page-size-aware rate limiting in addition to the standard read tier. The base read limit assumes a page size of `50`. Larger requested pages reduce the allowed request rate proportionally.
+
+Examples with the default 100 requests/min read tier:
+
+| Requested `limit` | Effective rate limit |
+|-------------------|----------------------|
+| `1-50` | 100 requests/min |
+| `51-100` | 50 requests/min |
+| `101-150` | 33 requests/min |
+| `951-1000` | 5 requests/min |
+
+Pagination validation for this endpoint is also enforced:
+
+- `limit` must be between `1` and `1000` (default `50`)
+- `offset` must be non-negative
+- Invalid values return `400 Bad Request`
+
+### Endpoint-Specific Limits
 ### Algorithm
 
 The API uses a sliding-window request log:

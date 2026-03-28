@@ -482,10 +482,25 @@ GET /api/contracts?limit=20&offset=40
 ```
 
 **Limits:**
-- Max `limit`: 1000 (default: 50)
-- Max `offset`: 10,000
+- `limit` must be between `1` and `1000` (default: `50`)
+- `offset` must be a non-negative integer
+- Invalid pagination values return `400 Bad Request`
 
 **Performance:** Slower for large offsets (offset > 1000).
+
+**Validation examples:**
+
+```http
+GET /api/contracts?limit=5001
+```
+
+Returns `400 Bad Request` with a message explaining that `limit` must be between `1` and `1000`.
+
+```http
+GET /api/contracts?offset=-1
+```
+
+Returns `400 Bad Request` with a message explaining that `offset` must be non-negative.
 
 **Best for:** Small datasets, random access to pages.
 
